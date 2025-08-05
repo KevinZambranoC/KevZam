@@ -71,6 +71,7 @@ export const LoginCard = () => {
             <div className="signup-action-box border" style={{ textAlign: 'center' }}>
                 <p style={{ color: 'gray', fontSize: '14px' }}>Don't have an account?<Link to="/signup" style={{ color: '#2196f3', fontWeight: 'bold', marginLeft: '6px', textDecoration: 'none', fontSize: '13.25px' }}>Sign up</Link></p>
             </div>
+            <span className='login-copy' style={{ textAlign: 'center', display: 'block', marginTop: '20px' }}>© 2025 KevZam</span>
         </div>
     )
 }
