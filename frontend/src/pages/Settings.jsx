@@ -60,7 +60,7 @@ export const Settings = () => {
                 localStorage.setItem('user', JSON.stringify(context.auth))
             }
         }).catch(err => {
-            context.throwErr(err.response.data.message)
+            context.throwErr(err.response?.data?.message || err.message)
         })
         console.log(data);
     }
@@ -106,7 +106,7 @@ export const Settings = () => {
                 setResetNewPassword('')
                 setResetPassword('')
             }
-        }).catch(err => context.throwErr(err.response.data.message))
+        }).catch(err => context.throwErr(err.response?.data?.message || err.message))
     }
 
 

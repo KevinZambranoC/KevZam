@@ -16,7 +16,7 @@ export const ForgotCard = () => {
                 context.throwSuccess(res.data.message)
             }
         }).catch(err => {
-            context.throwErr(err.response.data.message)
+            context.throwErr(err.response?.data?.message || err.message)
         })
     }
     return (

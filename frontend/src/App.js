@@ -57,10 +57,12 @@ function App() {
   }, [auth]);
 
   useEffect(() => {
-    socket.on("connect");
-    if (auth) socket.emit("online", { uid: auth._id });
+    const handleConnect = () => {
+      if (auth) socket.emit("online", { uid: auth._id });
+    };
+    socket.on("connect", handleConnect);
     return () => {
-      socket.off("connect");
+      socket.off("connect", handleConnect);
     };
   }, [auth]);
 

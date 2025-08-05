@@ -39,7 +39,7 @@ export function Password() {
                 navigate('/login')
             }
         }).catch(err => {
-            context.throwErr(err.response.data.message)
+            context.throwErr(err.response?.data?.message || err.message)
         })
     }
     return (

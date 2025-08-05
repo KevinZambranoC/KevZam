@@ -24,8 +24,9 @@ export const LoginCard = () => {
             context.setAuth(response.data.user)
             window.location.reload()
         } catch (err) {
-            context.throwErr(err.response.data.message)
-            console.log(err.response.data.message);
+            const msg = err.response?.data?.message || err.message
+            context.throwErr(msg)
+            console.log(msg);
         }
     }
 
