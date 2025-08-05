@@ -23,6 +23,31 @@ exports.getStory = async (req, res) => {
   }
 };
 
+exports.reactStory = async (req, res) => {
+  try {
+    const story = await Story.findOne({ id: req.params.id });
+    if (!story)
+      return res.status(404).send({ success: false, message: "Story not found" });
+    if (req.body.reaction === "like_true" && story.owner.toString() !== req.user._id.toString()) {
+      await User.updateOne(
+        { _id: story.owner.toString() },
+        {
+          $push: {
+            notifications: {
+              user: req.user._id,
+              content: "Liked your story",
+              NotificationType: 4,
+              storyId: story.id,
+            },
+          },
+        }
+      );
+    }
+    res.send({ success: true });
+  } catch (err) {
+    res.status(400).send({ success: false, message: err.message });
+  }
+};
 
 exports.userStory = async (req, res) => {
   try {

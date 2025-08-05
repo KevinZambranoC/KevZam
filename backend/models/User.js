@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema({
       // 1 -> like
       // 2 -> comment
       // 3 -> follow
+      // 4 -> story like
       NotificationType: Number,
       content: String,
       seen: {
@@ -67,6 +68,10 @@ const userSchema = new mongoose.Schema({
       postId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Post",
+        default: undefined,
+      },
+      storyId: {
+        type: String,
         default: undefined,
       },
       time: {

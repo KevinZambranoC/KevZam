@@ -97,10 +97,6 @@ body {
 .login-copy {
   font-size: 14px;
   color: gray;
-  width: 100%;
-  text-align: center;
-  display: block;
-  margin-top: 20px;
 }
 
 .login-left {
