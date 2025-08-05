@@ -88,6 +88,17 @@ body {
   height: fit-content;
 }
 
+.login-flex {
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-copy {
+  font-size: 14px;
+  color: gray;
+}
+
 .login-left {
   width: 47%;
 }

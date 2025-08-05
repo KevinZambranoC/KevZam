@@ -4,10 +4,9 @@ import { SignupCard } from '../components/login/SignupCard'
 export function Signup() {
   return (
     <div>
-        <div className='home lg-sg'>
+        <div className='home lg-sg login-flex'>
+            <span className='login-copy'>© 2025 KevZam</span>
             <SignupCard/>
-            
-            <span style={{position:'absolute',bottom:'15px',fontSize:'14px',color:'gray'}}>© 2025 KevZam</span>
         </div>
     </div>
   )

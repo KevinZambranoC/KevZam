@@ -3,9 +3,9 @@ import {LoginCard} from '../components/login/LoginCard'
 
 export function Login() {
     return (
-        <div className='home lg-sg'>
-            <LoginCard/>
-            <span style={{position:'absolute',bottom:'15px',fontSize:'14px',color:'gray'}}>© 2025 KevZam</span>
-        </div>
-    )
+    <div className='home lg-sg login-flex'>
+      <span className='login-copy'>© 2025 KevZam</span>
+      <LoginCard />
+    </div>
+  )
 }
