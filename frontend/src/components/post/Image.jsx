@@ -5,7 +5,7 @@ import { Dialog } from "@mui/material";
 import './image.css'
 import { Post } from '../dialog/Post'
 
-export const Image = ({ src, likes, comments, postId, userId }) => {
+export const Image = ({ src, likes, comments, postId, userId, filterPosts }) => {
 
   const [openDailog, setOpenDilaog] = React.useState(false);
 
@@ -50,7 +50,7 @@ export const Image = ({ src, likes, comments, postId, userId }) => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <Post postId={postId} userId={userId} />
+        <Post postId={postId} userId={userId} filterPosts={filterPosts} setOpenDilaog={setOpenDilaog} />
       </Dialog>
     </>
 

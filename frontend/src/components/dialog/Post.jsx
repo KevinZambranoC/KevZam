@@ -107,12 +107,16 @@ export const Post = ({ postId, userId, filterPosts, setOpenDilaog }) => {
     function deletepost() {
         api.delete(`${url}/post/delete/${postId}`).then((res) => {
             if (res.data) {
-                handleCloseMenu()
-                context.throwErr("Deleted Post")
-                setOpenDilaog(false)
-                filterPosts(postId)
+                handleCloseMenu();
+                context.throwErr("Deleted Post");
+                if (typeof setOpenDilaog === 'function') {
+                    setOpenDilaog(false);
+                }
+                if (typeof filterPosts === 'function') {
+                    filterPosts(postId);
+                }
             }
-        })
+        });
     }
     const handleCopy = () => {
         navigator.clipboard.writeText(`${window.location.origin}/post/${postId}`)
