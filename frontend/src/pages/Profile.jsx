@@ -41,7 +41,7 @@ export const Profile = ({ findStory, post = true }) => {
       api.get(`${url}/post/userpost/${user?._id}`).then((data) => {
         setLoading(false)
         if (data) {
-          setPosts(data.data);
+          setPosts(Array.isArray(data.data) ? data.data : [])
         }
       }).catch(err => {
         console.log(err);
@@ -51,7 +51,7 @@ export const Profile = ({ findStory, post = true }) => {
       api.get(`${url}/post/get/saved`).then((data) => {
         setLoading(false)
         if (data) {
-          setPosts(data.data);
+          setPosts(Array.isArray(data.data) ? data.data : [])
         }
       }).catch(err => {
         console.log(err);
@@ -263,16 +263,16 @@ export const Profile = ({ findStory, post = true }) => {
             post ?
               <div className='grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', rowGap: '17px' }}>
                 {
-                  posts?.map(item =>
+                  Array.isArray(posts) && posts.map(item => (
                     <Image userId={item.owner} postId={item._id} likes={item.likes.length} comments={item.comments.length} key={item._id} src={item.files[0].link}></Image>
-                  )
+                  ))
                 }
 
               </div> : <div className='grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', rowGap: '17px' }}>
                 {
-                  posts?.map(item =>
+                  Array.isArray(posts) && posts.map(item => (
                     <Image userId={item.owner} postId={item._id} likes={item.likes.length} comments={item.comments.length} key={item._id} src={item.files[0].link}></Image>
-                  )
+                  ))
                 }
               </div>
           }
