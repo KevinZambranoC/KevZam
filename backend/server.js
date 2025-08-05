@@ -20,13 +20,16 @@ const postRoute = require("./routes/post");
 const userRoute = require("./routes/user");
 const chatRoute = require("./routes/chat");
 const storyRoute = require("./routes/story");
+const messageRoute = require("./routes/message");
 const User = require("./models/User");
+const Message = require("./models/Message");
 
 app.use("/auth", authRoute);
 app.use("/post", postRoute);
 app.use("/user", userRoute);
 app.use("/chat", chatRoute);
 app.use("/story", storyRoute);
+app.use("/message", messageRoute);
 
 app.get("/test", (req, res) => {
   res.send("Hello from other side");
@@ -43,6 +46,17 @@ io.on("connect", (socket) => {
   });
   socket.on("typingoff", ({ uid, roomId }) => {
     socket.broadcast.emit(`typinglistenoff${roomId}`, uid);
+  });
+  socket.on("join-room", ({ roomId }) => {
+    socket.join(roomId);
+  });
+  socket.on("send-message", async ({ roomId, message, uid, file }) => {
+    try {
+      const msg = await Message.create({ roomId, uid, message, file: file || false });
+      io.to(roomId).emit("receive-message", msg);
+    } catch (err) {
+      console.log(err);
+    }
   });
   socket.on("disconnect", async () => {
     await User.updateOne(

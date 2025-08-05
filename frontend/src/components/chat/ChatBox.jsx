@@ -1,17 +1,10 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo, useRef, useEffect, useState, useContext } from 'react'
 import defaultImg from '../../assets/dafault.png'
 import { Link, useNavigate } from 'react-router-dom'
-import { emojiIcon, galleryIcon, likeOutline } from '../../assets/svgIcons';
-import { useEffect } from 'react';
-import { useState } from 'react';
+import { emojiIcon, likeOutline } from '../../assets/svgIcons';
 import { api } from '../../Interceptor/apiCall';
 import { url } from '../../baseUrl';
-import { useContext } from 'react';
 import { AuthContext } from '../../context/Auth'
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db, storage } from '../../firebase'
-import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import Resizer from "react-image-file-resizer";
 import OtherMessage from './OtherMessage';
 import MyMessage from './MyMessage';
 import Details from './Details';
@@ -36,20 +29,26 @@ export default function ChatBox({ roomId, deleteRoom }) {
     const [lastSeen, SetLastSeen] = useState()
 
 
-    const q = useMemo(() => query(collection(db, roomId), orderBy("timestamp", "asc")), [roomId])
     const scrollRef = useRef()
 
     useEffect(() => {
         setDetails(false)
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const messages = [];
-            querySnapshot.forEach((doc) => {
-                messages.push(doc.data());
-            });
-            setSnapShotMessages(messages)
-        });
-        return () => unsubscribe()
-    }, [q, roomId])
+        api.get(`${url}/message/${roomId}`)
+            .then(res => setSnapShotMessages(res.data))
+            .catch(err => console.log(err))
+        typesocket.emit('join-room', { roomId })
+    }, [roomId, typesocket])
+
+    useEffect(() => {
+        typesocket.on('receive-message', (msg) => {
+            if (msg.roomId === roomId) {
+                setSnapShotMessages(prev => [...prev, msg])
+            }
+        })
+        return () => {
+            typesocket.off('receive-message')
+        }
+    }, [roomId, typesocket])
 
     useEffect(() => {
         updateScroll()
@@ -84,35 +83,12 @@ export default function ChatBox({ roomId, deleteRoom }) {
         sendMessage("like_true")
     }
 
-    async function sendMessage(m, file) {
-        try {
-            setMessage('')
-            await addDoc(collection(db, roomId), {
-                message: m,
-                uid: context.auth._id,
-                timestamp: serverTimestamp(),
-                file: file ? true : false
-            });
-        } catch (e) {
-            console.error(e);
-        }
+    function sendMessage(m) {
+        if (!m) return
+        setMessage('')
+        typesocket.emit('send-message', { roomId, message: m, uid: context.auth._id })
     }
 
-    const resizeFile = (file) =>
-        new Promise((resolve) => {
-            Resizer.imageFileResizer(
-                file,
-                2200,
-                1800,
-                "JPEG",
-                70,
-                0,
-                (uri) => {
-                    resolve(uri);
-                },
-                "file"
-            );
-        });
 
     useEffect(() => {
         if (message === undefined) return
@@ -125,35 +101,6 @@ export default function ChatBox({ roomId, deleteRoom }) {
 
     function handleMessageInput(e) {
         setMessage(e.target.value)
-    }
-    async function handleUplaodImage(e) {
-        const file = e.target.files[0]
-        if (file.type === "image/jpeg" || file.type === "image/jpg" || file.type === "image/png") {
-            const newFile = await resizeFile(file)
-            const storageRef = ref(storage, 'images/' + newFile.name);
-            const uploadTask = uploadBytesResumable(storageRef, newFile);
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
-                },
-                (error) => {
-                    console.log(error);
-                    context.throwErr("Some error occured")
-                },
-                () => {
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log('File available at', downloadURL);
-                        sendMessage(downloadURL, true).then(() => {
-                            console.log("done");
-                        })
-                    });
-                }
-            );
-            console.log(newFile);
-        } else {
-            context.throwErr('File type not supported')
-        }
     }
 
     useEffect(() => {
@@ -261,10 +208,6 @@ export default function ChatBox({ roomId, deleteRoom }) {
                                             {emojiIcon}
                                         </button>
                                         <input onKeyDown={e => handleKeyPress(e)} onChange={handleMessageInput} value={message} style={{ width: '80%', height: '100%', border: 'none', marginLeft: '5px', outline: 'none' }} type="text" placeholder='Message...' />
-                                        <input onChange={(e) => handleUplaodImage(e)} type="file" id="image_chat" hidden />
-                                        <label htmlFor="image_chat" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                            {galleryIcon}
-                                        </label>
                                         <button onClick={() => handleLike()} className='no_style' style={{ background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {likeOutline}
                                         </button>

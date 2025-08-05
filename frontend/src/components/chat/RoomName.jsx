@@ -1,18 +1,15 @@
-import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
-import React, { useEffect, useMemo } from 'react'
-import { useState } from 'react';
-import { useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react'
 import { Link } from 'react-router-dom';
 import defaultImg from '../../assets/dafault.png'
 import { url } from '../../baseUrl';
 import { AuthContext } from '../../context/Auth';
 import { api } from '../../Interceptor/apiCall';
-import { db } from '../../firebase'
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { socket } from '../../App';
 
 export default function RoomName({ roomId }) {
     // console.log("roomcompoent  " + roomId);
-    const q = useMemo(() => query(collection(db, roomId), orderBy("timestamp", "desc"), limit(1)), [roomId])
+    const typesocket = useMemo(() => socket, [])
 
     const context = useContext(AuthContext)
     const [roomImage, setRoomImage] = useState()
@@ -36,15 +33,18 @@ export default function RoomName({ roomId }) {
     }, [context.auth._id, roomId])
 
     useEffect(() => {
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const messages = [];
-            querySnapshot.forEach((doc) => {
-                messages.push(doc.data());
-            });
-            setlastmessage(messages[0].message)
-        });
-        return () => unsubscribe()
-    }, [q])
+        api.get(`${url}/message/${roomId}?limit=1&sort=desc`).then(res => {
+            if (res.data[0]) setlastmessage(res.data[0].message)
+        }).catch(err => console.log(err))
+    }, [roomId])
+
+    useEffect(() => {
+        const handler = (msg) => {
+            if (msg.roomId === roomId) setlastmessage(msg.message)
+        }
+        typesocket.on('receive-message', handler)
+        return () => typesocket.off('receive-message', handler)
+    }, [roomId, typesocket])
 
     return (
         <Link to={`/chats/${roomId}`} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', margin: "18px 0", paddingLeft: '22px', cursor: 'pointer' }} >

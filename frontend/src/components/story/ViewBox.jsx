@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 // import PauseIcon from '@mui/icons-material/Pause';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -13,11 +13,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { Box, LinearProgress } from '@mui/material';
+import { AuthContext } from '../../context/Auth';
+import { socket } from '../../App';
 
 export default function ViewBox({ stories }) {
     const [user, setUser] = useState()
     const [bar, setBar] = useState(0)
+    const [message, setMessage] = useState('')
     const navigate = useNavigate()
+    const context = useContext(AuthContext)
     useEffect(() => {
         if (!stories) return
         api.get(`${url}/user/get/${stories?.current?.owner}`).then((res) => {
@@ -33,8 +37,11 @@ export default function ViewBox({ stories }) {
         }, 500)
         const timer = setTimeout(() => {
             clearInterval(barValue)
-            if (!stories.next) navigate('/')
-            navigate(`/story/${stories.next.owner}?id=${stories.next.id}`)
+            if (!stories.next) {
+                navigate('/')
+            } else {
+                navigate(`/story/${stories.next.owner}?id=${stories.next.id}`)
+            }
         }, 6000)
 
         return () => {
@@ -43,6 +50,26 @@ export default function ViewBox({ stories }) {
             setBar(0)
         }
     }, [navigate, stories])
+
+    async function sendReply(m) {
+        if (!m || !stories?.current?.owner) return
+        try {
+            const room = await api.post(`${url}/chat/handshake`, { people: [stories.current.owner] })
+            socket.emit('send-message', { roomId: room.data.roomId, message: m, uid: context.auth._id })
+            setMessage('')
+            navigate(`/chats/${room.data.roomId}`)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    function handleSend() {
+        sendReply(message)
+    }
+
+    function handleLike() {
+        sendReply('like_true')
+    }
 
     return (
         <div style={{ backgroundColor: 'gray', width: '25vw', minWidth: '445px', height: '95vh', borderRadius: '9px', position: 'absolute', top: '2.75vh', boxShadow: '0 0 200px rgba(0,0,0,0.9) inset' }}>
@@ -83,11 +110,11 @@ export default function ViewBox({ stories }) {
             }
             <div className="header_comments" style={{ width: '100%', position: 'absolute', bottom: '18px', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                 <div className="input_story_reply" style={{ width: '75%' }}>
-                    <input style={{ width: '100%', marginLeft: '14px', height: '40px', borderRadius: '16px', paddingLeft: '8px', outline: 'none', color: 'white', border: '1px solid white', fontSize: '12px' }} type="text" placeholder={'Reply to ' + user?.username} />
+                    <input value={message} onChange={e => setMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSend() }} style={{ width: '100%', marginLeft: '14px', height: '40px', borderRadius: '16px', paddingLeft: '8px', outline: 'none', color: 'white', border: '1px solid white', fontSize: '12px' }} type="text" placeholder={'Reply to ' + user?.username} />
                 </div>
                 <div className="input_story_reactions" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginRight: '9px', justifyContent: 'space-between', width: '70px', marginLeft: 'auto' }}>
-                    <FavoriteBorderIcon sx={{ color: 'white', fontSize: '30px' }} />
-                    <SendIcon sx={{ color: 'white', fontSize: '26px', transform: 'rotate(-28deg)', marginTop: '-9px' }} />
+                    <FavoriteBorderIcon onClick={handleLike} sx={{ color: 'white', fontSize: '30px' }} />
+                    <SendIcon onClick={handleSend} sx={{ color: 'white', fontSize: '26px', transform: 'rotate(-28deg)', marginTop: '-9px', cursor: 'pointer' }} />
                 </div>
             </div>
         </div>

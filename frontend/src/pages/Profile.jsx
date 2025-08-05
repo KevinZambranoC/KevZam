@@ -274,8 +274,8 @@ export const Profile = ({ findStory, post = true }) => {
               </div> : <div className='grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', rowGap: '17px' }}>
                 {
                   Array.isArray(posts) && posts.map(item => (
-                    <Image userId={item.owner} postId={item._id} likes={item.likes.length} comments={item.comments.length} key={item._id} src={item.files[0].link}></Image>
-                  ))
+                    <Image filterPosts={filterPosts} userId={item.owner} postId={item._id} likes={item.likes.length} comments={item.comments.length} key={item._id} src={item.files[0].link}></Image>
+                ))
                 }
               </div>
           }
