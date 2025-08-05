@@ -4,7 +4,6 @@ import { api } from '../../Interceptor/apiCall'
 import ReactTimeAgo from 'react-time-ago'
 import defaultImg from '../../assets/dafault.png'
 import { Link } from 'react-router-dom'
-import { io } from 'socket.io-client'
 
 export const Notification = ({ content, time, followbtn, postId = null, userId, seen }) => {
     const [user, setUser] = useState()

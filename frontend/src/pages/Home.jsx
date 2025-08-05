@@ -39,7 +39,7 @@ export default function Home({ stories }) {
     setPosts(posts => posts.filter(item => item.owner !== uid))
   }
   function newPost(post) {
-    setPosts(posta => [post, ...posts])
+    setPosts(posta => [post, ...posta])
   }
   context.newpost = newPost
 

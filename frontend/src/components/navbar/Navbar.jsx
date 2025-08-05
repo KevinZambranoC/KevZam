@@ -116,7 +116,7 @@ export const Navbar = ({ active }) => {
       if (res.data) {
         context.throwSuccess("Posted")
         handleCloseDialog()
-        context.newpost(res.data)
+        context.newpost?.(res.data)
       }
       console.log(res.data);
     })

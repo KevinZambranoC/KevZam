@@ -23,10 +23,9 @@ import AuthRedirect from "./pages/AuthRedirect";
 export const socket = io(url);
 
 function App() {
-  socket.on("connection", function (data) {
-    console.log(data);
-  });
-  const [auth, setAuth] = useState(JSON.parse(localStorage.getItem("user")));
+  const [auth, setAuth] = useState(
+    JSON.parse(localStorage.getItem("user"))
+  );
   const [active, setActive] = useState("home");
   const [stories, setStories] = useState([]);
 
