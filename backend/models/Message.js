@@ -13,6 +13,7 @@ const messageSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true,
+    maxlength: 200,
   },
   file: {
     type: Boolean,

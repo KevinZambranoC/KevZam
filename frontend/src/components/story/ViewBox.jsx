@@ -23,19 +23,31 @@ export default function ViewBox({ stories }) {
     const [showEmojis, setShowEmojis] = useState(false)
     const navigate = useNavigate()
     const context = useContext(AuthContext)
+
+    const renderText = (text) => {
+        return text.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+            if (part.startsWith('@')) {
+                const username = part.slice(1)
+                return <Link key={i} to={`/${username}`} style={{ color: '#ADD8E6' }}>{part}</Link>
+            }
+            return part
+        })
+    }
+
     useEffect(() => {
         if (!stories) return
         api.get(`${url}/user/get/${stories?.current?.owner}`).then((res) => {
             setUser(res.data)
             return api.put(`${url}/story/seen/${stories?.current?.id}`)
         }).then((res) => console.log(res.data)).catch(err => console.log(err))
+        const duration = 15000
         const barValue = setInterval(() => {
             setBar(prev => {
-                if (prev + 9 > 100) {
+                if (prev + 1 > 100) {
                     return 100
-                } return prev + 9
+                } return prev + 1
             })
-        }, 500)
+        }, duration / 100)
         const timer = setTimeout(() => {
             clearInterval(barValue)
             if (!stories.next) {
@@ -43,7 +55,7 @@ export default function ViewBox({ stories }) {
             } else {
                 navigate(`/story/${stories.next.owner}?id=${stories.next.id}`)
             }
-        }, 6000)
+        }, duration)
 
         return () => {
             clearInterval(barValue);
@@ -53,7 +65,7 @@ export default function ViewBox({ stories }) {
     }, [navigate, stories])
 
     async function sendReply(m) {
-        if (!m || !stories?.current?.owner) return
+        if (!m || m.length > 200 || !stories?.current?.owner) return
         try {
             const room = await api.post(`${url}/chat/handshake`, { people: [stories.current.owner] })
             socket.emit('send-message', { roomId: room.data.roomId, message: m, uid: context.auth._id })
@@ -96,7 +108,20 @@ export default function ViewBox({ stories }) {
                     <MoreHorizIcon sx={{ color: 'white', fontSize: '24px' }} />
                 </div>
             </div>
-            <img src={stories?.current?.data} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} alt="" />
+            {(() => {
+                const data = stories?.current?.data
+                const isVideo = data && (data.startsWith('data:video') || /\.mp4$|\.webm$|\.ogg$/i.test(data))
+                return isVideo ? (
+                    <video src={data} autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
+                ) : (
+                    <img src={data} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} alt="" />
+                )
+            })()}
+            {stories?.current?.text && (
+                <div style={{ position: 'absolute', bottom: '75px', left: '14px', color: 'white', fontSize: '14px' }}>
+                    {renderText(stories.current.text)}
+                </div>
+            )}
             {
                 stories?.prev &&
                 <button onClick={() => navigate(`/story/${stories.prev.owner}?id=${stories.prev.id}`)} style={{ position: 'absolute', left: '-39px', top: '50%', zIndex: '99999', backgroundColor: '#5b5b5b', display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '50%', padding: '5px' }}>
@@ -117,7 +142,7 @@ export default function ViewBox({ stories }) {
                 </div>}
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <div className="input_story_reply" style={{ width: '75%' }}>
-                        <input value={message} onFocus={() => setShowEmojis(true)} onChange={e => setMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSend() }} style={{ width: '100%', marginLeft: '14px', height: '40px', borderRadius: '16px', paddingLeft: '8px', outline: 'none', color: 'white', border: '1px solid white', fontSize: '12px' }} type="text" placeholder={'Reply to ' + user?.username} />
+                        <input maxLength={200} value={message} onFocus={() => setShowEmojis(true)} onChange={e => setMessage(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleSend() }} style={{ width: '100%', marginLeft: '14px', height: '40px', borderRadius: '16px', paddingLeft: '8px', outline: 'none', color: 'white', border: '1px solid white', fontSize: '12px' }} type="text" placeholder={'Reply to ' + user?.username} />
                     </div>
                     <div className="input_story_reactions" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginRight: '9px', justifyContent: 'space-between', width: '70px', marginLeft: 'auto' }}>
                         <FavoriteBorderIcon onClick={handleLike} sx={{ color: 'white', fontSize: '30px' }} />

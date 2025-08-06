@@ -39,8 +39,10 @@ export default function Right() {
 
     async function handleStoryUpload(e) {
         const file = e.target.files[0]
-        if (file.type === "image/jpeg" || file.type === "image/jpg" || file.type === "image/png") {
-            const storageRef = ref(storage, 'images/' + file.name);
+        if (!file) return;
+        const caption = prompt('Caption (puedes mencionar con @usuario)') || ''
+        const upload = (path) => {
+            const storageRef = ref(storage, `${path}/` + file.name);
             const uploadTask = uploadBytesResumable(storageRef, file);
             uploadTask.on('state_changed',
                 (snapshot) => {
@@ -53,9 +55,10 @@ export default function Right() {
                 },
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log('File available at', downloadURL);
+                        
                         api.post(`${url}/story`, {
-                            data: downloadURL
+                            data: downloadURL,
+                            text: caption
                         }).then(res => {
                             if (res.data) {
                                 context.throwSuccess("story uplaoded")
@@ -64,6 +67,20 @@ export default function Right() {
                     });
                 }
             );
+            };
+        if (file.type.startsWith("image/")) {
+            upload('images');
+        } else if (file.type.startsWith("video/")) {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.onloadedmetadata = () => {
+                window.URL.revokeObjectURL(video.src);
+                if (video.duration > 15) {
+                    return context.throwErr('Video must be 15 seconds or less');
+                }
+                upload('videos');
+            };
+            video.src = URL.createObjectURL(file);
         } else {
             context.throwErr('File type not supported')
         }
@@ -75,7 +92,7 @@ export default function Right() {
             <div className="my-acc" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div className="img" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <Link to={`/${auth?.username}`} style={{ position: 'relative' }}><img src={auth?.avatar ? auth.avatar : defaultImg} style={{ minWidth: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', }} alt="" /></Link>
-                    <input onChange={e => handleStoryUpload(e)} type="file" id="story_up" hidden />
+                    <input onChange={e => handleStoryUpload(e)} type="file" accept="image/*,video/*" id="story_up" hidden />
                     <label htmlFor="story_up" title="Add new story" style={{ position: 'relative', top: '15px', left: '-12px', backgroundColor: '#0095F6', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', padding: '2px', cursor: 'pointer' }}><AddIcon sx={{ fontSize: '16px', color: 'white' }} /></label>
                     <div className="name" style={{ display: 'flex', flexDirection: 'column', marginLeft: '18px' }}>
                         <Link to={`/${auth?.username}`} style={{ color: 'black', fontSize: '14.75px', fontWeight: 'bold' }}>{auth?.username}</Link>

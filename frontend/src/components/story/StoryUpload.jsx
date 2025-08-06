@@ -68,6 +68,7 @@ export default function StoryUpload({ onUpload }) {
           ))}
         </div>
         <textarea
+          maxLength={200}
           placeholder="Agrega texto o emojis (opcional)"
           value={text}
           onChange={e => setText(e.target.value)}

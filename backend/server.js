@@ -52,6 +52,9 @@ io.on("connect", (socket) => {
   });
   socket.on("send-message", async ({ roomId, message, uid, file }) => {
     try {
+      if (message && message.length > 200) {
+        return;
+      }
       const msg = await Message.create({ roomId, uid, message, file: file || false });
       io.to(roomId).emit("receive-message", msg);
     } catch (err) {

@@ -14,6 +14,16 @@ const StorySchema = new mongoose.Schema(
       type: String,
       require: true,
     },
+    text: {
+      type: String,
+      maxlength: 200,
+    },
+    mentions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+    ],
     seen: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -15,6 +15,12 @@ exports.getMessages = async (req, res) => {
 
 exports.addMessage = async (req, res) => {
     try {
+        if (req.body.message && req.body.message.length > 200) {
+            return res.status(400).send({
+                success: false,
+                message: 'Message exceeds 200 characters'
+            });
+        }
         const msg = await Message.create({
             roomId: req.body.roomId,
             uid: req.user._id,

@@ -84,7 +84,7 @@ export default function ChatBox({ roomId, deleteRoom }) {
     }
 
     function sendMessage(m) {
-        if (!m) return
+        if (!m || m.length > 200) return
         setMessage('')
         typesocket.emit('send-message', { roomId, message: m, uid: context.auth._id })
     }
@@ -207,7 +207,7 @@ export default function ChatBox({ roomId, deleteRoom }) {
                                         <button onClick={(e) => { e.stopPropagation(); setEmojiPicker(prev => !prev) }} style={{ backgroundColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {emojiIcon}
                                         </button>
-                                        <input onKeyDown={e => handleKeyPress(e)} onChange={handleMessageInput} value={message} style={{ width: '80%', height: '100%', border: 'none', marginLeft: '5px', outline: 'none' }} type="text" placeholder='Message...' />
+                                        <input maxLength={200} onKeyDown={e => handleKeyPress(e)} onChange={handleMessageInput} value={message} style={{ width: '80%', height: '100%', border: 'none', marginLeft: '5px', outline: 'none' }} type="text" placeholder='Message...' />
                                         <button onClick={() => handleLike()} className='no_style' style={{ background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {likeOutline}
                                         </button>

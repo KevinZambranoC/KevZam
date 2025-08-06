@@ -65,10 +65,19 @@ exports.userStory = async (req, res) => {
 
 exports.newStory = async (req, res) => {
   try {
+    let mentions = [];
+    const text = req.body.text || "";
+    const usernames = text.match(/@([a-zA-Z0-9_]+)/g)?.map((u) => u.slice(1)) || [];
+    if (usernames.length) {
+      const users = await User.find({ username: { $in: usernames } }, "_id");
+      mentions = users.map((u) => u._id);
+    }
     const newStory = new Story({
       id: id(),
       owner: req.user._id,
       data: req.body.data,
+      text,
+      mentions,
       seen: [],
     });
     const story = await newStory.save();
