@@ -59,6 +59,7 @@ const userSchema = new mongoose.Schema({
       // 2 -> comment
       // 3 -> follow
       // 4 -> story like
+      // 5 -> mention
       NotificationType: Number,
       content: String,
       seen: {

@@ -1,5 +1,8 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
+const Room = require("../models/Room");
+const Message = require("../models/Message");
+const { v4: id } = require('uuid');
 const { all } = require("../routes/post");
 
 exports.getPost = async (req, res) => {
@@ -21,18 +24,50 @@ exports.getPost = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-    let mentions = [];
     const caption = req.body.caption || "";
-    const usernames = caption.match(/@([a-zA-Z0-9_]+)/g)?.map((u) => u.slice(1)) || [];
-    if (usernames.length) {
-      const users = await User.find({ username: { $in: usernames } }, "_id");
-      mentions = users.map((u) => u._id);
+    const mentionText = req.body.mentions || "";
+    const combinedCaption = mentionText ? `${caption} ${mentionText}`.trim() : caption;
+    let mentions = [];
+    let users = [];
+    if (mentionText) {
+      const usernames = mentionText.match(/@([a-zA-Z0-9_]+)/g)?.map((u) => u.slice(1)) || [];
+      if (usernames.length) {
+        users = await User.find({ username: { $in: usernames } }, "_id");
+        mentions = users.map((u) => u._id);
+      }
     }
-    const post = new Post({ ...req.body, owner: req.user._id, mentions });
+    const post = new Post({ ...req.body, caption: combinedCaption, owner: req.user._id, mentions });
     const saved = await post.save();
     await User.updateOne(
       { _id: req.user._id },
       { $push: { posts: saved._id } }
+    );
+    await Promise.all(
+      users.map(async (u) => {
+        await User.updateOne(
+          { _id: u._id },
+          {
+            $push: {
+              notifications: {
+                user: req.user._id,
+                content: "Mentioned you in a post",
+                NotificationType: 5,
+                postId: saved._id,
+              },
+            },
+          }
+        );
+        let room = await Room.findOne({ people: { $all: [req.user._id, u._id] } });
+        if (!room) {
+          room = await Room.create({ roomId: id(), people: [req.user._id, u._id] });
+        }
+        await Message.create({
+          roomId: room.roomId,
+          uid: req.user._id,
+          message: `I mentioned you in a post`,
+          file: false,
+        });
+      })
     );
     res.send(saved);
   } catch (err) {

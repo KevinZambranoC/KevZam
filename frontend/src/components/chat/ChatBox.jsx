@@ -91,16 +91,26 @@ export default function ChatBox({ roomId, deleteRoom }) {
         typesocket.emit('send-message', { roomId, message: m, uid: context.auth._id, file, forwardedFrom })
     }
 
-    function handleForward(msg) {
-        const target = prompt('Room ID to forward to')
-        if (!target) return
-        typesocket.emit('send-message', {
-            roomId: target,
-            message: msg.message,
-            uid: context.auth._id,
-            file: msg.file,
-            forwardedFrom: msg.uid
-        })
+    async function handleForward(msg) {
+        const username = prompt('Username to forward to (without @)')
+        if (!username) return
+        try {
+            const userRes = await api.get(`${url}/user/${username}`)
+            if (!userRes.data?._id) {
+                context.throwErr?.('User not found')
+                return
+            }
+            const roomRes = await api.post(`${url}/chat/handshake`, { people: [userRes.data._id] })
+            typesocket.emit('send-message', {
+                roomId: roomRes.data.roomId,
+                message: msg.message,
+                uid: context.auth._id,
+                file: msg.file,
+                forwardedFrom: msg.uid
+            })
+        } catch (err) {
+            console.log(err)
+        }
     }
 
     function handleFileUpload(e) {

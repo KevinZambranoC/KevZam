@@ -28,6 +28,7 @@ export const Navbar = ({ active }) => {
   const [imgurl, setImgurl] = useState('')
   const context = useContext(AuthContext)
   const [caption, setCaption] = useState('')
+  const [mentions, setMentions] = useState('')
   const [innerActive, setInnerActive] = useState()
 
   const open = Boolean(anchorEl);
@@ -59,6 +60,7 @@ export const Navbar = ({ active }) => {
   const handleCloseDialog = () => {
     setImgurl('')
     setCaption('')
+    setMentions('')
     setOpenDilaog(false);
     setInnerActive()
   };
@@ -107,6 +109,7 @@ export const Navbar = ({ active }) => {
     }
     const data = {
       caption: caption,
+      mentions: mentions,
       files: [{
         fileType: "image",
         link: imgurl
@@ -175,6 +178,16 @@ export const Navbar = ({ active }) => {
                             style: { fontSize: '13.5px', fontFamily: 'Poppins' }
                           }}
                           value={caption} onChange={e => setCaption(e.target.value)}
+                        />
+                        <TextField
+                          label="Mentions"
+                          placeholder="@user1 @user2"
+                          InputProps={{
+                            style: { fontSize: '13.5px', fontFamily: 'Poppins' }
+                          }}
+                          value={mentions}
+                          onChange={e => setMentions(e.target.value)}
+                          style={{ marginTop: '10px' }}
                         />
                         <button onClick={() => handlePost()} style={{ border: 'none', outline: 'none', background: 'blue', padding: '3.5px 9px', borderRadius: '5px', color: 'white', backgroundColor: '#2196f3', marginTop: '12px', fontSize: '15px', cursor: 'pointer' }}>Upload</button>
                       </div>
