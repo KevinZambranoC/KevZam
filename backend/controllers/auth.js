@@ -19,7 +19,7 @@ exports.registerUser = async (req, res) => {
       : req.body.username;
     const data = {
       ...req.body,
-       username: sanitizedUsername,
+      username: sanitizedUsername,
       password: await bcrypt.hash(req.body.password, 10),
     };
     const newUser = new User(data);

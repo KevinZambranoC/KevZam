@@ -1,4 +1,5 @@
 const Message = require('../models/Message');
+const User = require('../models/User');
 
 exports.getMessages = async (req, res) => {
     try {
@@ -21,11 +22,18 @@ exports.addMessage = async (req, res) => {
                 message: 'Message exceeds 200 characters'
             });
         }
+        if (req.body.forwardedFrom) {
+            const user = await User.findById(req.user._id);
+            if (!user.followings.includes(req.body.forwardedFrom)) {
+                return res.status(403).send({ success: false, message: 'Cannot forward this message' });
+            }
+        }
         const msg = await Message.create({
             roomId: req.body.roomId,
             uid: req.user._id,
             message: req.body.message,
-            file: req.body.file || false
+            file: req.body.file || false,
+            forwardedFrom: req.body.forwardedFrom,
         });
         res.send(msg);
     } catch (err) {

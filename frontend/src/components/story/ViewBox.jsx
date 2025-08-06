@@ -122,6 +122,11 @@ export default function ViewBox({ stories }) {
                     {renderText(stories.current.text)}
                 </div>
             )}
+            {stories?.current?.text && (
+                <div style={{ position: 'absolute', bottom: '75px', left: '14px', color: 'white', fontSize: '14px' }}>
+                    {renderText(stories.current.text)}
+                </div>
+            )}
             {
                 stories?.prev &&
                 <button onClick={() => navigate(`/story/${stories.prev.owner}?id=${stories.prev.id}`)} style={{ position: 'absolute', left: '-39px', top: '50%', zIndex: '99999', backgroundColor: '#5b5b5b', display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '50%', padding: '5px' }}>

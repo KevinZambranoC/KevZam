@@ -15,6 +15,11 @@ const messageSchema = new mongoose.Schema({
     required: true,
     maxlength: 200,
   },
+  forwardedFrom: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: undefined,
+  },
   file: {
     type: Boolean,
     default: false,

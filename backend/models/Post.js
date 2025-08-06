@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema({
   caption: String,
+  mentions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   files: [
     {
       fileType: String,

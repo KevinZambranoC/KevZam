@@ -50,12 +50,18 @@ io.on("connect", (socket) => {
   socket.on("join-room", ({ roomId }) => {
     socket.join(roomId);
   });
-  socket.on("send-message", async ({ roomId, message, uid, file }) => {
+  socket.on("send-message", async ({ roomId, message, uid, file, forwardedFrom }) => {
     try {
       if (message && message.length > 200) {
         return;
       }
-      const msg = await Message.create({ roomId, uid, message, file: file || false });
+      if (forwardedFrom) {
+        const user = await User.findById(uid);
+        if (!user.followings.includes(forwardedFrom)) {
+          return;
+        }
+      }
+      const msg = await Message.create({ roomId, uid, message, file: file || false, forwardedFrom });
       io.to(roomId).emit("receive-message", msg);
     } catch (err) {
       console.log(err);

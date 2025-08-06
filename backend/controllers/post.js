@@ -21,7 +21,14 @@ exports.getPost = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-    const post = new Post({ ...req.body, owner: req.user._id });
+    let mentions = [];
+    const caption = req.body.caption || "";
+    const usernames = caption.match(/@([a-zA-Z0-9_]+)/g)?.map((u) => u.slice(1)) || [];
+    if (usernames.length) {
+      const users = await User.find({ username: { $in: usernames } }, "_id");
+      mentions = users.map((u) => u._id);
+    }
+    const post = new Post({ ...req.body, owner: req.user._id, mentions });
     const saved = await post.save();
     await User.updateOne(
       { _id: req.user._id },

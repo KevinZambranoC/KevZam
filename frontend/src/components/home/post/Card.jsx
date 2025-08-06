@@ -15,6 +15,16 @@ import { Post } from "../../dialog/Post";
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import Emoji from "../../emoji/Emoji";
 
+function renderWithMentions(text) {
+    return text.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+        if (part.startsWith('@')) {
+            const username = part.slice(1)
+            return <Link key={i} to={`/${username}`}>{part}</Link>
+        }
+        return part
+    })
+}
+
 export default function Card({ img, likes, caption, time, comments, userId, id, saved, filterPosts, filterUserPosts }) {
     const context = useContext(AuthContext)
     const [comment, setComment] = useState('')
@@ -255,7 +265,7 @@ export default function Card({ img, likes, caption, time, comments, userId, id, 
                 </div>
                 <div className="caption" style={{ display: 'flex', flexDirection: 'row', alignItems: "center", marginTop: '8px' }}>
                     <Link to={user?.username} style={{ fontWeight: 'bold', fontSize: '13.65px', marginLeft: '9px' }}>{user?.username}</Link>
-                    <p style={{ fontSize: '13.19px', marginLeft: '5px' }}>{captionShow && captionShow}</p></div>
+                    <p style={{ fontSize: '13.19px', marginLeft: '5px' }}>{captionShow && renderWithMentions(captionShow)}</p></div>
                 {
                     commnetsCount !== 0 && <div onClick={handleClickOpen} className="comments" style={{ marginTop: '9px', cursor: 'pointer' }}><p style={{ fontSize: '13.39px', marginLeft: '9px', color: 'gray' }}>View all {commnetsCount} comments</p></div>
                 }

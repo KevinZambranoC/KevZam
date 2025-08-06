@@ -12,6 +12,8 @@ import ReactTimeAgo from 'react-time-ago'
 import Emoji from '../emoji/Emoji';
 import { socket } from '../../App';
 import Typing from './Typing';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { storage } from '../../firebase';
 
 export default function ChatBox({ roomId, deleteRoom }) {
     const typesocket = useMemo(() => socket, [])
@@ -83,10 +85,38 @@ export default function ChatBox({ roomId, deleteRoom }) {
         sendMessage("like_true")
     }
 
-    function sendMessage(m) {
+    function sendMessage(m, file = false, forwardedFrom) {
         if (!m || m.length > 200) return
         setMessage('')
-        typesocket.emit('send-message', { roomId, message: m, uid: context.auth._id })
+        typesocket.emit('send-message', { roomId, message: m, uid: context.auth._id, file, forwardedFrom })
+    }
+
+    function handleForward(msg) {
+        const target = prompt('Room ID to forward to')
+        if (!target) return
+        typesocket.emit('send-message', {
+            roomId: target,
+            message: msg.message,
+            uid: context.auth._id,
+            file: msg.file,
+            forwardedFrom: msg.uid
+        })
+    }
+
+    function handleFileUpload(e) {
+        const file = e.target.files[0]
+        if (!file) return
+        const storageRef = ref(storage, 'chat/' + file.name)
+        const uploadTask = uploadBytesResumable(storageRef, file)
+        uploadTask.on('state_changed',
+            () => { },
+            (error) => console.log(error),
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    sendMessage(downloadURL, true)
+                })
+            }
+        )
     }
 
 
@@ -190,9 +220,9 @@ export default function ChatBox({ roomId, deleteRoom }) {
                                     {
                                         snapShotMessages.map((msg, index) => {
                                             return <div key={index}>{context.auth._id === msg.uid ?
-                                                <MyMessage msg={msg} />
+                                                <MyMessage msg={msg} onForward={() => handleForward(msg)} />
                                                 :
-                                                <OtherMessage msg={msg} />
+                                                <OtherMessage msg={msg} onForward={() => handleForward(msg)} />
                                             }
                                             </div>
                                         })
@@ -207,7 +237,9 @@ export default function ChatBox({ roomId, deleteRoom }) {
                                         <button onClick={(e) => { e.stopPropagation(); setEmojiPicker(prev => !prev) }} style={{ backgroundColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {emojiIcon}
                                         </button>
-                                        <input maxLength={200} onKeyDown={e => handleKeyPress(e)} onChange={handleMessageInput} value={message} style={{ width: '80%', height: '100%', border: 'none', marginLeft: '5px', outline: 'none' }} type="text" placeholder='Message...' />
+                                        <input maxLength={200} onKeyDown={e => handleKeyPress(e)} onChange={handleMessageInput} value={message} style={{ width: '70%', height: '100%', border: 'none', marginLeft: '5px', outline: 'none' }} type="text" placeholder='Message...' />
+                                        <input onChange={handleFileUpload} type="file" accept="image/*" id="chat_img" hidden />
+                                        <label htmlFor="chat_img" style={{ cursor: 'pointer' }}>📷</label>
                                         <button onClick={() => handleLike()} className='no_style' style={{ background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {likeOutline}
                                         </button>

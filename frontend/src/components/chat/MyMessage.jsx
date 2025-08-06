@@ -1,6 +1,17 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
-export default function MyMessage({ msg }) {
+function renderWithMentions(text) {
+    return text.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+        if (part.startsWith('@')) {
+            const username = part.slice(1)
+            return <Link key={i} to={`/${username}`}>{part}</Link>
+        }
+        return part
+    })
+}
+
+export default function MyMessage({ msg, onForward }) {
     if (msg.story) {
         return (
             <div style={{ marginLeft: 'auto', marginRight: '18px', marginTop: '18px', maxWidth: '60%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -18,11 +29,19 @@ export default function MyMessage({ msg }) {
             <div className="my_text" style={{ marginLeft: 'auto', width: 'fit-content', marginRight: '18px', color: 'white', padding: '10px 16px', borderRadius: '22px', marginTop: '18px', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
                 <svg aria-label="Like" className="_ab6-" color="#ed4956" fill="#ed4956" height="44" role="img" viewBox="0 0 48 48" width="44"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>
             </div> :
-            msg.file ? <div className="my_text" style={{ marginLeft: 'auto', width: 'fit-content', marginRight: '18px', color: 'white', padding: '10px 16px', borderRadius: '22px', marginTop: '18px', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
-                <img style={{ maxWidth: '400px', borderRadius: '14px', border: '1px solid #e3e3e3' }} src={msg.message} alt="img" />
-            </div> :
-                <div className="my_text" style={{ marginLeft: 'auto', width: 'fit-content', marginRight: '18px', backgroundColor: '#7c3aed', color: 'white', padding: '10px 16px', borderRadius: '22px', marginTop: '18px', maxWidth: '60%' }}>
-                    {msg.message}
+            msg.file ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                {msg.forwardedFrom && <p style={{ fontSize: '11px', color: 'gray', marginRight: '18px' }}>Forwarded</p>}
+                <div className="my_text" style={{ marginLeft: 'auto', width: 'fit-content', marginRight: '18px', color: 'white', padding: '10px 16px', borderRadius: '22px', marginTop: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+                    <img style={{ maxWidth: '400px', borderRadius: '14px', border: '1px solid #e3e3e3' }} src={msg.message} alt="img" />
+                    <button onClick={onForward} style={{ background: 'transparent', marginLeft: '5px' }}>↪</button>
                 </div>
+            </div> :
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                {msg.forwardedFrom && <p style={{ fontSize: '11px', color: 'gray', marginRight: '18px' }}>Forwarded</p>}
+                <div className="my_text" style={{ marginLeft: 'auto', width: 'fit-content', marginRight: '18px', backgroundColor: '#7c3aed', color: 'white', padding: '10px 16px', borderRadius: '22px', marginTop: '4px', maxWidth: '60%', display: 'flex', alignItems: 'center' }}>
+                    <span>{renderWithMentions(msg.message)}</span>
+                    <button onClick={onForward} style={{ background: 'transparent', marginLeft: '5px' }}>↪</button>
+                </div>
+            </div>
     )
 }

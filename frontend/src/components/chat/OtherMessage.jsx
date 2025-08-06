@@ -4,7 +4,17 @@ import { url } from '../../baseUrl'
 import { api } from '../../Interceptor/apiCall'
 import { Link } from 'react-router-dom'
 
-export default function OtherMessage({ msg }) {
+function renderWithMentions(text) {
+    return text.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+        if (part.startsWith('@')) {
+            const username = part.slice(1)
+            return <Link key={i} to={`/${username}`}>{part}</Link>
+        }
+        return part
+    })
+}
+
+export default function OtherMessage({ msg, onForward }) {
     const [user, setUser] = useState({})
 
     useEffect(() => {
@@ -45,8 +55,12 @@ export default function OtherMessage({ msg }) {
                     <Link to={`/${user?.username}}`}>
                         <img style={{ width: '30px', borderRadius: '50%', marginBottom: '-7px', marginLeft: '18px' }} src={user?.avatar || defaultImg} alt="" />
                     </Link>
-                    <div className="other_text" style={{ width: 'fit-content', marginLeft: '12px', color: 'black', padding: '10px 16px', borderRadius: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '22px' }}>
-                        <img style={{ maxWidth: '400px', borderRadius: '14px', border: '1px solid #e3e3e3', marginLeft: '-8px' }} src={msg.message} alt="img" />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {msg.forwardedFrom && <p style={{ fontSize: '11px', color: 'gray' }}>Forwarded</p>}
+                        <div className="other_text" style={{ width: 'fit-content', marginLeft: '12px', color: 'black', padding: '10px 16px', borderRadius: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '22px' }}>
+                            <img style={{ maxWidth: '400px', borderRadius: '14px', border: '1px solid #e3e3e3', marginLeft: '-8px' }} src={msg.message} alt="img" />
+                            <button onClick={onForward} style={{ background: 'transparent', marginLeft: '5px' }}>↪</button>
+                        </div>
                     </div>
                 </div>
                 :
@@ -54,8 +68,12 @@ export default function OtherMessage({ msg }) {
                     <Link to={`/${user?.username}`}>
                         <img style={{ width: '30px', borderRadius: '50%', marginBottom: '-7px', marginLeft: '18px' }} src={user?.avatar || defaultImg} alt="" />
                     </Link>
-                    <div className="other_text" style={{ width: 'fit-content', marginLeft: '12px', backgroundColor: '#dbdbdb', color: 'black', padding: '10px 16px', borderRadius: '22px', maxWidth: '60%' }}>
-                        {msg.message}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {msg.forwardedFrom && <p style={{ fontSize: '11px', color: 'gray' }}>Forwarded</p>}
+                        <div className="other_text" style={{ width: 'fit-content', marginLeft: '12px', backgroundColor: '#dbdbdb', color: 'black', padding: '10px 16px', borderRadius: '22px', maxWidth: '60%', display: 'flex', alignItems: 'center' }}>
+                            <span>{renderWithMentions(msg.message)}</span>
+                            <button onClick={onForward} style={{ background: 'transparent', marginLeft: '5px' }}>↪</button>
+                        </div>
                     </div>
                 </div>
     )

@@ -14,6 +14,15 @@ import { AuthContext } from '../../context/Auth'
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import Emoji from '../emoji/Emoji'
 
+function renderWithMentions(text) {
+    return text.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) => {
+        if (part.startsWith('@')) {
+            const username = part.slice(1)
+            return <Link key={i} to={`/${username}`}>{part}</Link>
+        }
+        return part
+    })
+}
 
 export const Post = ({ postId, userId, filterPosts, setOpenDilaog }) => {
     const context = useContext(AuthContext)
@@ -263,7 +272,7 @@ export const Post = ({ postId, userId, filterPosts, setOpenDilaog }) => {
                                 <Link to={`/${user?.username}`}><img src={user?.avatar ? user.avatar : defaultImg} style={{ minWidth: '35px', height: '35px', objectFit: 'cover', borderRadius: '50%', }} alt="" /></Link>
                             </div>
                             <div className="right-comment" onMouseOver={() => setShow(true)} onMouseLeave={() => setShow(false)} style={{ display: 'flex', flexDirection: 'column', marginLeft: '9px' }}>
-                                <p style={{ fontSize: '13px' }} className="username-comment"><Link to={`/${user?.username}`} style={{ fontWeight: 'bold' }}>{user?.username}</Link> {captionShow}</p>
+                                <p style={{ fontSize: '13px' }} className="username-comment"><Link to={`/${user?.username}`} style={{ fontWeight: 'bold' }}>{user?.username}</Link> {renderWithMentions(captionShow)}</p>
                                 <div className="comment-labels">
                                     <div className="same-line" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                         <p className='timestamp' style={{ fontSize: '11.5px' }} >
