@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require('bcrypt')
-const { SendMail } = require('../utils/mail')
+const { SendMail, SendFollowMail } = require('../utils/mail')
 const { v4: uid } = require('uuid')
 const ResetTokens = require('../models/ResetTokens')
 
@@ -8,7 +8,10 @@ const ResetTokens = require('../models/ResetTokens')
 exports.getUser = async (req, res) => {
   try {
     const { username } = req.params;
-    const user = await User.findOne({ username });
+    const sanitizedUsername = username.startsWith('@')
+      ? username.slice(1)
+      : username;
+    const user = await User.findOne({ username: sanitizedUsername });
     if (!user) {
       return res.send({
         success: false,
@@ -53,6 +56,7 @@ exports.followHandle = async (req, res) => {
       await User.updateOne({ _id: user }, { $pull: { followings: userId } });
       await User.updateOne({ _id: userId }, { $pull: { followers: user } });
     } else {
+      const target = await User.findOne({ _id: userId });
       await User.updateOne({ _id: user }, { $push: { followings: userId } });
       await User.updateOne({ _id: userId }, { $push: { followers: user } });
       await User.updateOne(
@@ -67,6 +71,9 @@ exports.followHandle = async (req, res) => {
           },
         }
       );
+      if (target && target.email) {
+        await SendFollowMail(userdb.username, target.email);
+      }
     }
     res.send({
       success: true,
@@ -252,8 +259,11 @@ exports.getAllUsers = async (req, res) => {
 // forgot password
 exports.resetPassword = async (req, res) => {
   try {
+    const text = req.body.text?.startsWith('@')
+      ? req.body.text.slice(1)
+      : req.body.text;
     const user = await User.findOne({
-      $or: [{ email: req.body.text }, { username: req.body.text }],
+      $or: [{ email: text }, { username: text }],
     })
     if (!user) return res.status(400).json({ success: false, message: "No user found" })
     const token = uid()

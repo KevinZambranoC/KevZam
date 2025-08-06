@@ -14,8 +14,12 @@ exports.registerUser = async (req, res) => {
         success: false,
         message: "User already exist",
       });
+    const sanitizedUsername = req.body.username?.startsWith("@")
+      ? req.body.username.slice(1)
+      : req.body.username;
     const data = {
       ...req.body,
+       username: sanitizedUsername,
       password: await bcrypt.hash(req.body.password, 10),
     };
     const newUser = new User(data);
@@ -47,8 +51,11 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
+    const text = req.body.text?.startsWith("@")
+      ? req.body.text.slice(1)
+      : req.body.text;
     const user = await User.findOne({
-      $or: [{ email: req.body.text }, { username: req.body.text }],
+      $or: [{ email: text }, { username: text }]
     });
     if (!user)
       return res.status(401).send({
