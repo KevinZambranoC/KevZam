@@ -34,6 +34,7 @@ export default function OtherMessage({ msg, onForward }) {
                         :
                         <div style={{ backgroundColor: '#dbdbdb', color: 'black', padding: '10px 16px', borderRadius: '22px', marginTop: '8px' }}>{msg.message}</div>
                     }
+                    <button onClick={onForward} style={{ background: 'transparent', marginTop: '5px', alignSelf: 'flex-start' }}>↪</button>
                 </div>
             </div>
         )

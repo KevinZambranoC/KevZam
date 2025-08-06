@@ -93,18 +93,31 @@ exports.newStory = async (req, res) => {
 exports.addSeen = async (req, res) => {
   try {
     const story = await Story.findOne({ id: req.params.id });
-    if (story.id === req.user._id)
+    if (!story)
+      return res
+        .status(404)
+        .send({ success: false, message: "Story not found" });
+    if (story.owner.toString() === req.user._id.toString())
       return res.send({ success: false, message: "Unsupported" });
     if (story?.seen?.includes(req.user._id))
       return res.send({ success: false, message: "Unsupported" });
-    Story.updateOne(
-      { id: req.params.id },
-      { $push: { seen: req.user._id } }
-    ).then(() => {
-      res.send({
-        success: true,
-        message: "done",
-      });
+   await Story.updateOne({ id: req.params.id }, { $push: { seen: req.user._id } });
+    await User.updateOne(
+      { _id: story.owner },
+      {
+        $push: {
+          notifications: {
+            user: req.user._id,
+            content: "Viewed your story",
+            NotificationType: 6,
+            storyId: story.id,
+          },
+        },
+      }
+    );
+    res.send({
+      success: true,
+      message: "done",
     });
   } catch (err) {
     res.status(400).send({

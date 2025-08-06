@@ -112,7 +112,7 @@ export default function ViewBox({ stories }) {
                 const data = stories?.current?.data
                 const isVideo = data && (data.startsWith('data:video') || /\.mp4$|\.webm$|\.ogg$/i.test(data))
                 return isVideo ? (
-                    <video src={data} autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
+                    <video src={data} autoPlay muted controls playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} />
                 ) : (
                     <img src={data} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '9px' }} alt="" />
                 )
